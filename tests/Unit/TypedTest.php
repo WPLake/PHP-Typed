@@ -6,6 +6,8 @@ use PHPUnit\Framework\TestCase;
 use stdClass;
 use WPLake\Typed\Typed;
 
+use function WPLake\Typed\string;
+
 class TypedTest extends TestCase
 {
     // Note: All the methods are decorators for the 'any()' method, so we can focus solely on it.
@@ -370,19 +372,8 @@ class TypedTest extends TestCase
 
     // functions.php
 
-    public function testFunctionsFileSkipsDeclarationsByDefault(): void
+    public function testFunctionsAreAvailable(): void
     {
-        include __DIR__ . '/../../src/functions.php';
-
-        $this->assertFalse(function_exists('string'));
-    }
-
-    public function testFunctionsFileDeclaretsFunctionsWithConstant(): void
-    {
-        define('WPLAKE_TYPED_FUNCTIONS', true);
-
-        include __DIR__ . '/../../src/functions.php';
-
         $array = ['key' => 'value'];
         $result = string($array, 'key');
 

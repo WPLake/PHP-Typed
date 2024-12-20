@@ -33,27 +33,44 @@ function getTypedStringFromMixedVariable($mixed): string
 }
 ```
 
-**The same with `Typed` utility**
+**The same with the `Typed` utility**
 
 ```php
-use WPLake\Typed\Typed;
-use WPLake\Typed\Typed;
+use function WPLake\Typed\int;
+use function WPLake\Typed\string;
 
 function getTypedIntFromArray(array $data): int
 {
-    return Typed::int($data, 'meta.number');
+    return int($data, 'meta.number');
 }
 
 function getTypedStringFromMixedVariable($mixedData): string
 {
-    return Typed::string($mixedData);
+    return string($mixedData);
 }
 ```
 
-Want to provide a default value when the key is missing? Here you go:
+The code like `string($array, 'key')` resembles `(string)$array['key']` while being
+safe and smart — it even handles nested keys.
+
+> In case now you're thinking: "Hold on guys, but this code won't work! Are your using type names as function names?" 
+> 
+> Our answer is: "Yes! And actually it isn't prohibited."
+> 
+> See the explanation in the special section - [5. Note about the function names](#5-note-about-the-function-names)
+
+Backing to the package. Want to provide a default value when the key is missing? Here you go:
 
 ```php
-Typed::string($data, 'some.key', 'Default Value');
+string($data, 'some.key', 'Default Value');
+```
+
+Don't like functions? The same functions set is available as static methods of the `Typed` class:
+
+```php
+use WPLake\Typed\Typed;
+
+Typed::int($data,'key');
 ```
 
 ## 2. Installation and usage
@@ -69,30 +86,33 @@ After installation, ensure that your application includes the Composer autoloade
 Usage:
 
 ```php
+use function WPLake\Typed\string;
 use WPLake\Typed\Typed;
 
+$string = string($array, 'first.second','default value');
+// alternatively:
 $string = Typed::string($array, 'first.second','default value');
 ```
 
 ## 3. Supported types
 
-Static methods for the following types are present:
+Functions for the following types are present:
 
-* `Typed::string`
-* `Typed::int`
-* `Typed::float`
-* `Typed::bool`
-* `Typed::array`
-* `Typed::object`
-* `Typed::dateTime`
-* `Typed::any` (allows to use short dot-keys usage for unknowns)
+* `string`
+* `int`
+* `float`
+* `bool`
+* `array`
+* `object`
+* `dateTime`
+* `any` (allows to use short dot-keys usage for unknowns)
 
 Additionally:
 
-* `Typed::boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
-* `Typed::stringExtended` (supports objects with `__toString`)
+* `boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
+* `stringExtended` (supports objects with `__toString`)
 
-For optional cases, each item has an `OrNull` method option (e.g. `Typed::stringOrNull`, `Typed::intOrNull`, and so on),
+For optional cases, each item has an `OrNull` method option (e.g. `stringOrNull`, `intOrNull`, and so on),
 which returns `null` if the key doesn’t exist.
 
 ## 4. How It Works
@@ -106,15 +126,11 @@ For example, let's review the `string` method declaration:
 ```php
 namespace WPLake\Typed;
 
-class Typed {
-    /**
-     * @param mixed $source
-     * @param int|string|array<int,int|string>|null $keys
-     */
-    public static function string($source, $keys = null, string $default = ''): string;
-    
-    // ...
-}
+/**
+ * @param mixed $source
+ * @param int|string|array<int,int|string>|null $keys
+ */
+function string($source, $keys = null, string $default = ''): string;
 ```
 
 Usage Scenarios:
@@ -122,71 +138,56 @@ Usage Scenarios:
 1. Extract a string from a mixed variable (returning the default if absent or of an incompatible type)
 
 ```php
-$userName = Typed::string($unknownVar);
+$userName = string($unknownVar);
 ```
 
 2. Retrieve a string from an array, including nested structures (with dot notation or as an array).
 
 ```php
-$userName = Typed::string($array, 'user.name');
+$userName = string($array, 'user.name');
 // alternatively:
-$userName = Typed::string($array, ['user','name',]);
+$userName = string($array, ['user','name',]);
 ```
 
 3. Access a string from an object. It also supports the nested properties.
 
 ```php
-$userName = Typed::string($companyObject, 'user.name');
+$userName = string($companyObject, 'user.name');
 // alternatively:
-$userName = Typed::string($companyObject, ['user', 'name',]);
+$userName = string($companyObject, ['user', 'name',]);
 ```
 
 4. Work with mixed structures (e.g., `object->arrayProperty['key']->anotherProperty or ['key' => $object]`).
 
 ```php
-$userName = Typed::string($companyObject,'users.john.name');
+$userName = string($companyObject,'users.john.name');
 // alternatively:
-$userName = Typed::string($companyObject,['users','john','name',]);
+$userName = string($companyObject,['users','john','name',]);
 ```
 
 In all the cases, you can pass a default value as the third argument, e.g.:
 
 ```php
-$userName = Typed::string($companyObject,'users.john.name', 'Guest');
+$userName = string($companyObject,'users.john.name', 'Guest');
 ```
 
-## 5. Global Helper Functions
+## 5. Note about the function names
 
-Surprisingly, PHP allows global functions to share the same names as variable types.
+Surprisingly, PHP allows functions to use the same names as variable types.
 
 Think it’s prohibited? Not quite! While certain names are restricted for classes, interfaces, and traits, function names
 are not:
 
-> “These names cannot be used to name a class, interface, or
-> trait” - [PHP Manual: Reserved Other Reserved Words](https://www.php.net/manual/en/reserved.other-reserved-words.php)
+> “These names cannot be used to name a **class, interface, or
+> trait**” - [PHP Manual: Reserved Other Reserved Words](https://www.php.net/manual/en/reserved.other-reserved-words.php)
 
-This means you can have something like `string($array, 'key')`, which resembles `(string)$array['key']` while being
+This means you we can have things like `string($array, 'key')`, which resembles `(string)$array['key']` while being
 safer
 and smarter — it even handles nested keys.
 
-However, since these functions must be declared in the global namespace (you can’t use `WPLake\Typed\string`), their
-usage is optional.
-
-**How to Enable**
-
-To enable these global helper functions, define the following constant before including the Composer autoloader:
-
-```php
-define('WPLAKE_TYPED_FUNCTIONS', true);
-
-require __DIR__ . '/vendor/autoload.php';
-```
-
-Once enabled, you can enjoy clean and intuitive syntax and call all the functions listed above without the `Typed::` prefix, just as `string()`, `float()`, and so on.
-
 Note: Unlike all the other types, the `array` keyword falls under
 a [different category](https://www.php.net/manual/en/reserved.keywords.php), which also prohibits its usage for function
-names. That's why in this case we used the `arr` instead.
+names. That's why in this case we used the `arr` name instead.
 
 ## 6. FAQ
 
