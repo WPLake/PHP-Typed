@@ -62,6 +62,31 @@ final class Typed
      * @param mixed $source
      * @param int|string|null $key
      */
+    public static function stringExtended($source, $key = null, string $default = ''): string
+    {
+        $value = self::any($source, $key, $default);
+
+        if (
+            true === is_string($value) ||
+            true === is_numeric($value)
+        ) {
+            return (string)$value;
+        }
+
+        if (
+            true === is_object($value) &&
+            true === method_exists($value, '__toString')
+        ) {
+            return (string)$value;
+        }
+
+        return $default;
+    }
+
+    /**
+     * @param mixed $source
+     * @param int|string|null $key
+     */
     public static function stringOrNull($source, $key = null): ?string
     {
         $value = self::any($source, $key);
@@ -70,6 +95,31 @@ final class Typed
         true === is_numeric($value) ?
             (string)$value :
             null;
+    }
+
+    /**
+     * @param mixed $source
+     * @param int|string|null $key
+     */
+    public static function stringExtendedOrNull($source, $key = null): ?string
+    {
+        $value = self::any($source, $key);
+
+        if (
+            true === is_string($value) ||
+            true === is_numeric($value)
+        ) {
+            return (string)$value;
+        }
+
+        if (
+            true === is_object($value) &&
+            true === method_exists($value, '__toString')
+        ) {
+            return (string)$value;
+        }
+
+        return null;
     }
 
     /**
@@ -127,10 +177,36 @@ final class Typed
     /**
      * @param mixed $source
      * @param int|string|null $key
+     */
+    public static function bool($source, $key = null, bool $default = false): bool
+    {
+        $value = self::any($source, $key, $default);
+
+        return true === is_bool($value) ?
+            $value :
+            $default;
+    }
+
+    /**
+     * @param mixed $source
+     * @param int|string|null $key
+     */
+    public static function boolOrNull($source, $key = null): ?bool
+    {
+        $value = self::any($source, $key);
+
+        return true === is_bool($value) ?
+            $value :
+            null;
+    }
+
+    /**
+     * @param mixed $source
+     * @param int|string|null $key
      * @param array<int|string,mixed> $positive
      * @param array<int|string,mixed> $negative
      */
-    public static function bool(
+    public static function boolExtended(
         $source,
         $key = null,
         bool $default = false,
@@ -156,7 +232,7 @@ final class Typed
      * @param array<int|string,mixed> $positive
      * @param array<int|string,mixed> $negative
      */
-    public static function boolOrNull(
+    public static function boolExtendedOrNull(
         $source,
         $key = null,
         array $positive = [true, 1, '1', 'on',],
@@ -173,32 +249,6 @@ final class Typed
         }
 
         return null;
-    }
-
-    /**
-     * @param mixed $source
-     * @param int|string|null $key
-     */
-    public static function strictBool($source, $key = null, bool $default = false): bool
-    {
-        $value = self::any($source, $key, $default);
-
-        return true === is_bool($value) ?
-            $value :
-            $default;
-    }
-
-    /**
-     * @param mixed $source
-     * @param int|string|null $key
-     */
-    public static function strictBoolOrNull($source, $key = null): ?bool
-    {
-        $value = self::any($source, $key);
-
-        return true === is_bool($value) ?
-            $value :
-            null;
     }
 
     /**
