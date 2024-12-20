@@ -370,19 +370,22 @@ class TypedTest extends TestCase
 
     // functions.php
 
-    public function testFunctionsFileSkipsDeclarationsByDefault()
+    public function testFunctionsFileSkipsDeclarationsByDefault(): void
     {
         include __DIR__ . '/../../src/functions.php';
 
         $this->assertFalse(function_exists('string'));
     }
 
-    public function testFunctionsFileDeclaretsFunctionsWithConstant()
+    public function testFunctionsFileDeclaretsFunctionsWithConstant(): void
     {
         define('WPLAKE_TYPED_FUNCTIONS', true);
 
         include __DIR__ . '/../../src/functions.php';
 
-        $this->assertTrue(function_exists('string'));
+        $array = ['key' => 'value'];
+        $result = string($array, 'key');
+
+        $this->assertSame('value', $result);
     }
 }
