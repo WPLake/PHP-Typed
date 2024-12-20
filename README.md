@@ -182,7 +182,7 @@ define('WPLAKE_TYPED_FUNCTIONS', true);
 require __DIR__ . '/vendor/autoload.php';
 ```
 
-Once enabled, you can enjoy clean and intuitive syntax for the all types, with the added safety and flexibility.
+Once enabled, you can enjoy clean and intuitive syntax and call all the functions listed above without the `Typed::` prefix, just as `string()`, `float()`, and so on.
 
 Note: Unlike all the other types, the `array` keyword falls under
 a [different category](https://www.php.net/manual/en/reserved.keywords.php), which also prohibits its usage for function
