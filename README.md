@@ -152,7 +152,7 @@ WordPress.
 
 ### 5.3) Is the dot syntax in keys inspired by Laravel Collections?
 
-Yes, the dot syntax is inspired by Laravel Collections and similar solutions. It provides an intuitive way to access
+Yes, the dot syntax is inspired by [Laravel Collections](https://laravel.com/docs/11.x/collections) and similar solutions. It provides an intuitive way to access
 nested data structures.
 
 ### 5.4) Why not just use Laravel Collections?
@@ -160,7 +160,7 @@ nested data structures.
 Laravel Collections and similar libraries don’t offer type-specific methods like this package does.
 
 While extending
-Laravel Collections could be a theoretical solution, we opted for a standalone package because:
+[Laravel Collections package](https://github.com/illuminate/collections) could be a theoretical solution, we opted for a standalone package because:
 
 1. PHP Version Requirements: Laravel Collections require PHP 8.2+, while Typed supports PHP 7.4+.
 2. Dependencies: Laravel Collections bring several external Laravel-specific dependencies.
