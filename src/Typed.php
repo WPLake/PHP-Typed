@@ -18,52 +18,6 @@ final class Typed
 {
     /**
      * @param mixed $source
-     * @param int|string $key
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    protected static function resolveKey($source, $key, &$value): bool
-    {
-        if (true === is_object($source) &&
-            true === isset($source->{$key})) {
-            $value = $source->{$key};
-            return true;
-        }
-
-        if (true === is_array($source) &&
-            true === isset($source[$key])) {
-            $value = $source[$key];
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param mixed $source
-     * @param array<int,int|string> $keys
-     * @param mixed $default
-     * @return mixed
-     */
-    protected static function resolveKeys($source, array $keys, $default)
-    {
-        foreach ($keys as $key) {
-            $value = null;
-
-            if (true === self::resolveKey($source, $key, $value)) {
-                $source = $value;
-                continue;
-            }
-
-            return $default;
-        }
-
-        return $source;
-    }
-
-    /**
-     * @param mixed $source
      * @param int|string|null $key
      * @param mixed $default
      *
@@ -173,29 +127,52 @@ final class Typed
     /**
      * @param mixed $source
      * @param int|string|null $key
-     * @param array<int|string,mixed> $allowed
+     * @param array<int|string,mixed> $positive
+     * @param array<int|string,mixed> $negative
      */
-    public static function bool($source, $key = null, bool $default = false, array $allowed = [true, 1, '1', 'on',]): bool
-    {
+    public static function bool(
+        $source,
+        $key = null,
+        bool $default = false,
+        array $positive = [true, 1, '1', 'on',],
+        array $negative = [false, 0, '0', 'off',]
+    ): bool {
         $value = self::any($source, $key, $default);
 
-        return true === in_array($value, $allowed, true) ?
-            $value :
-            $default;
+        if (true === in_array($value, $positive, true)) {
+            return true;
+        }
+
+        if (true === in_array($value, $negative, true)) {
+            return false;
+        }
+
+        return $default;
     }
 
     /**
      * @param mixed $source
      * @param int|string|null $key
-     * @param array<int|string,mixed> $allowed
+     * @param array<int|string,mixed> $positive
+     * @param array<int|string,mixed> $negative
      */
-    public static function boolOrNull($source, $key = null, array $allowed = [true, 1, '1', 'on',]): ?bool
-    {
+    public static function boolOrNull(
+        $source,
+        $key = null,
+        array $positive = [true, 1, '1', 'on',],
+        array $negative = [false, 0, '0', 'off',]
+    ): ?bool {
         $value = self::any($source, $key);
 
-        return true === in_array($value, $allowed, true) ?
-            $value :
-            null;
+        if (true === in_array($value, $positive, true)) {
+            return true;
+        }
+
+        if (true === in_array($value, $negative, true)) {
+            return false;
+        }
+
+        return null;
     }
 
     /**
@@ -207,7 +184,7 @@ final class Typed
         $value = self::any($source, $key, $default);
 
         return true === is_bool($value) ?
-            $source :
+            $value :
             $default;
     }
 
@@ -220,13 +197,16 @@ final class Typed
         $value = self::any($source, $key);
 
         return true === is_bool($value) ?
-            $source :
+            $value :
             null;
     }
 
     /**
      * @param mixed $source
      * @param int|string|null $key
+     * @param array<int|string,mixed> $default
+     *
+     * @return array<int|string,mixed>
      */
     public static function array($source, $key = null, array $default = []): array
     {
@@ -240,6 +220,8 @@ final class Typed
     /**
      * @param mixed $source
      * @param int|string|null $key
+     *
+     * @return array<int|string,mixed>|null
      */
     public static function arrayOrNull($source, $key = null): ?array
     {
@@ -308,5 +290,54 @@ final class Typed
         return true === ($value instanceof DateTime) ?
             $value :
             null;
+    }
+
+    /**
+     * @param mixed $source
+     * @param int|string $key
+     * @param mixed $value
+     */
+    protected static function resolveKey($source, $key, &$value): bool
+    {
+        if (
+            true === is_object($source) &&
+            true === isset($source->{$key})
+        ) {
+            $value = $source->{$key};
+            return true;
+        }
+
+        if (
+            true === is_array($source) &&
+            true === isset($source[$key])
+        ) {
+            $value = $source[$key];
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param mixed $source
+     * @param array<int,int|string> $keys
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    protected static function resolveKeys($source, array $keys, $default)
+    {
+        foreach ($keys as $key) {
+            $value = null;
+
+            if (true === self::resolveKey($source, $key, $value)) {
+                $source = $value;
+                continue;
+            }
+
+            return $default;
+        }
+
+        return $source;
     }
 }

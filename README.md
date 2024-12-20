@@ -74,7 +74,8 @@ Static methods for the following types are present:
 * `bool`
 * `array`
 * `object`
-* `DateTime`
+* `dateTime`
+* `any` (allows to use short dot-keys usage for unknowns)
 
 For optional cases, each type has an `OrNull` method option (e.g. `stringOrNull`), which returns `null` if the key
 doesn’t exist.
@@ -152,7 +153,8 @@ WordPress.
 
 ### 5.3) Is the dot syntax in keys inspired by Laravel Collections?
 
-Yes, the dot syntax is inspired by [Laravel Collections](https://laravel.com/docs/11.x/collections) and similar solutions. It provides an intuitive way to access
+Yes, the dot syntax is inspired by [Laravel Collections](https://laravel.com/docs/11.x/collections) and similar
+solutions. It provides an intuitive way to access
 nested data structures.
 
 ### 5.4) Why not just use Laravel Collections?
@@ -160,11 +162,15 @@ nested data structures.
 Laravel Collections and similar libraries don’t offer type-specific methods like this package does.
 
 While extending
-[Laravel Collections package](https://github.com/illuminate/collections) could be a theoretical solution, we opted for a standalone package because:
+[Laravel Collections package](https://github.com/illuminate/collections) could be a theoretical solution, we opted for a
+standalone package because:
 
-1. PHP Version Requirements: Laravel Collections require PHP 8.2+, while Typed supports PHP 7.4+.
-2. Dependencies: Laravel Collections bring several external Laravel-specific dependencies.
-3. Global Functions: Laravel Collections rely on global helper functions, which are difficult to scope when needed.
+1. **PHP Version Requirements:** Laravel Collections require PHP 8.2+, while Typed supports PHP 7.4+.
+2. **Dependencies:** Laravel Collections bring several external Laravel-specific dependencies.
+3. **Global Functions:** Laravel Collections rely on global helper functions, which are difficult to scope when needed.
+
+In addition, when we only need to extract a single variable, requiring the entire array to be wrapped in a collection
+would be excessive.
 
 ## 6. Contribution
 
