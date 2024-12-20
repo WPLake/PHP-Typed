@@ -238,7 +238,7 @@ OOP is indeed powerful, and you should always prioritize using objects whenever 
 our code often interacts with external dependencies beyond our control.
 
 This package simplifies handling such scenarios.
-Any seasoned PHP developer knows the pain of type-casting when working with environments outside of frameworks like
+Any seasoned PHP developer knows the pain of type-casting when working with environments outside of frameworks, e.g. in
 WordPress.
 
 ### 6.4) Is the dot syntax in keys inspired by Laravel Collections?
