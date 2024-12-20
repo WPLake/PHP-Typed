@@ -8,19 +8,14 @@ This package provides a single `Typed` class with static methods and offers comp
 
 ## 1. Why Use Typed?
 
-Handling type casting in PHP often leads to verbose and repetitive constructions. `Typed` streamlines this process,
+Handling type casting in PHP often leads to verbose and repetitive constructions, especially in array-related cases.
+
+`Typed` streamlines this process,
 allowing you to fetch and cast values with concise, readable code.
 
 **Example: Plain PHP**
 
 ```php
-function getTypedStringFromMixedVariable($mixed): string
-{
-    return true === is_string($mixed) || true === is_numeric($mixed)
-        ? (string)$mixed
-        : '';
-}
-
 function getTypedIntFromArray(array $array): int
 {
     return true === isset($array['meta']['number']) &&
@@ -28,24 +23,31 @@ function getTypedIntFromArray(array $array): int
              ? (int)$array['meta']['number']
              : 0;
 }
+
+function getTypedStringFromMixedVariable($mixed): string
+{
+    return true === is_string($mixed) || 
+    true === is_numeric($mixed)
+        ? (string)$mixed
+        : '';
+}
 ```
 
 **The same with `Typed` utility**
 
 ```php
 use WPLake\Typed\Typed;
+use WPLake\Typed\Typed;
 
-function getTypedStringFromMixedVariable($mixedData): string
-{
-    return Typed::string($mixedData);
-}
-
-// Array item type casting:
 function getTypedIntFromArray(array $data): int
 {
     return Typed::int($data, 'meta.number');
 }
 
+function getTypedStringFromMixedVariable($mixedData): string
+{
+    return Typed::string($mixedData);
+}
 ```
 
 Want to provide a default value when the key is missing? Here you go:
@@ -76,22 +78,22 @@ $string = Typed::string($array, 'first.second','default value');
 
 Static methods for the following types are present:
 
-* `string`
-* `int`
-* `float`
-* `bool`
-* `array`
-* `object`
-* `dateTime`
-* `any` (allows to use short dot-keys usage for unknowns)
+* `Typed::string`
+* `Typed::int`
+* `Typed::float`
+* `Typed::bool`
+* `Typed::array`
+* `Typed::object`
+* `Typed::dateTime`
+* `Typed::any` (allows to use short dot-keys usage for unknowns)
 
 Additionally:
 
-* `boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
-* `stringExtended` (supports objects with `__toString`)
+* `Typed::boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
+* `Typed::stringExtended` (supports objects with `__toString`)
 
-> Plus, for optional cases, each item has an `OrNull` method option (e.g. `stringOrNull`, `intOrNull`, and so on), which returns `null` if the key
-doesn’t exist.
+For optional cases, each item has an `OrNull` method option (e.g. `Typed::stringOrNull`, `Typed::intOrNull`, and so on),
+which returns `null` if the key doesn’t exist.
 
 ## 4. How It Works
 
@@ -105,8 +107,13 @@ For example, let's review the `string` method declaration:
 namespace WPLake\Typed;
 
 class Typed {
-public static function string($source, $key = null, string $default = ''): string;
-// ...
+    /**
+     * @param mixed $source
+     * @param int|string|array<int,int|string>|null $keys
+     */
+    public static function string($source, $keys = null, string $default = ''): string;
+    
+    // ...
 }
 ```
 
@@ -118,22 +125,28 @@ Usage Scenarios:
 $userName = Typed::string($unknownVar);
 ```
 
-2. Retrieve a string from an array, including nested structures using dot notation (e.g., `some.key.subkey`).
+2. Retrieve a string from an array, including nested structures (with dot notation or as an array).
 
 ```php
 $userName = Typed::string($array, 'user.name');
+// alternatively:
+$userName = Typed::string($array, ['user','name',]);
 ```
 
-3. Access a string from an object, supporting nested properties with dot notation (e.g., `some.key.subkey`).
+3. Access a string from an object. It also supports the nested properties.
 
 ```php
 $userName = Typed::string($companyObject, 'user.name');
+// alternatively:
+$userName = Typed::string($companyObject, ['user', 'name',]);
 ```
 
 4. Work with mixed structures (e.g., `object->arrayProperty['key']->anotherProperty or ['key' => $object]`).
 
 ```php
 $userName = Typed::string($companyObject,'users.john.name');
+// alternatively:
+$userName = Typed::string($companyObject,['users','john','name',]);
 ```
 
 In all the cases, you can pass a default value as the third argument, e.g.:
@@ -142,9 +155,67 @@ In all the cases, you can pass a default value as the third argument, e.g.:
 $userName = Typed::string($companyObject,'users.john.name', 'Guest');
 ```
 
-## 5. FAQ
+## 5. Global Helper Functions
 
-### 5.1) Why not just Null Coalescing Operator?
+Surprisingly, PHP allows global functions to share the same names as variable types.
+
+Think it’s prohibited? Not quite! While certain names are restricted for classes, interfaces, and traits, function names
+are not:
+
+> “These names cannot be used to name a class, interface, or
+> trait” - [PHP Manual: Reserved Other Reserved Words](https://www.php.net/manual/en/reserved.other-reserved-words.php)
+
+This means you can have something like `string($array, 'key')`, which resembles `(string)$array['key']` while being
+safer
+and smarter — it even handles nested keys.
+
+However, since these functions must be declared in the global namespace (you can’t use `WPLake\Typed\string`), their
+usage is optional.
+
+**How to Enable**
+
+To enable these global helper functions, define the following constant before including the Composer autoloader:
+
+```php
+define('WPLAKE_TYPED_FUNCTIONS', true);
+
+require __DIR__ . '/vendor/autoload.php';
+```
+
+Once enabled, you can enjoy clean and intuitive syntax for the all types, with the added safety and flexibility.
+
+Note: Unlike all the other types, the `array` keyword falls under
+a [different category](https://www.php.net/manual/en/reserved.keywords.php), which also prohibits its usage for function
+names. That's why in this case we used the `arr` instead.
+
+## 6. FAQ
+
+### 6.1) Why not just straight type casting?
+
+Straight type casting in PHP can be unsafe and unpredictable in certain scenarios.
+
+For example, the following code will throw an error if the `$mixed` variable is an object of a class that doesn’t
+explicitly implement `__toString`:
+
+```php
+class Example {
+// ...
+}
+$mixed = new Example();
+// ...
+function getName($mixed):void{
+ return (string)$mixed;
+}
+```
+
+Additionally, attempting to cast an array to a string, like `(string)$myArray` will:
+
+1. Produce a PHP Notice: Array to string conversion.
+2. Return the string "Array", which is rarely the intended behavior.
+
+This unpredictability can lead to unexpected bugs and unreliable code.
+
+### 6.2) Why not just Null Coalescing Operator?
 
 While the Null Coalescing Operator (`??`) is useful, it doesn’t address type checking or casting requirements.
 
@@ -161,7 +232,7 @@ $number = Typed::int($data, 'meta.number', 10);
 
 Additionally, with Null Coalescing Operator and a custom default value, you have to repeat yourself.
 
-### 5.2) Shouldn't we use typed objects instead?
+### 6.3) Shouldn't we use typed objects instead?
 
 OOP is indeed powerful, and you should always prioritize using objects whenever possible. However, the reality is that
 our code often interacts with external dependencies beyond our control.
@@ -170,13 +241,13 @@ This package simplifies handling such scenarios.
 Any seasoned PHP developer knows the pain of type-casting when working with environments outside of frameworks like
 WordPress.
 
-### 5.3) Is the dot syntax in keys inspired by Laravel Collections?
+### 6.4) Is the dot syntax in keys inspired by Laravel Collections?
 
 Yes, the dot syntax is inspired by [Laravel Collections](https://laravel.com/docs/11.x/collections) and similar
 solutions. It provides an intuitive way to access
 nested data structures.
 
-### 5.4) Why not just use Laravel Collections?
+### 6.5) Why not just use Laravel Collections?
 
 Laravel Collections and similar libraries don’t offer type-specific methods like this package does.
 
@@ -191,7 +262,7 @@ standalone package because:
 In addition, when we only need to extract a single variable, requiring the entire array to be wrapped in a collection
 would be excessive.
 
-## 6. Contribution
+## 7. Contribution
 
 We would be excited if you decide to contribute 🤝
 
@@ -199,16 +270,16 @@ Please open Pull Requests against the `main` branch.
 
 ### Code Style Agreements:
 
-#### 6.1) PSR-12 Compliance
+#### 7.1) PSR-12 Compliance
 
 Use the [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer) tool in your IDE with the provided `phpcs.xml`,
 or run `composer phpcbf` to format your code.
 
-#### 6.2) Static Analysis with PHPStan
+#### 7.2) Static Analysis with PHPStan
 
 Set up [PHPStan](https://phpstan.org/) in your IDE with the provided `phpstan.neon`, or run `composer phpstan` to
 validate your code.
 
-#### 6.3) Unit Tests
+#### 7.3) Unit Tests
 
 [Pest](https://pestphp.com/) is setup for Unit tests. Run them using `composer pest`.

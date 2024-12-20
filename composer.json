@@ -19,7 +19,10 @@
   "autoload": {
     "psr-4": {
       "WPLake\\Typed\\": "./src"
-    }
+    },
+    "files": [
+      "./src/functions.php"
+    ]
   },
   "require-dev": {
     "pestphp/pest": "^3.7",

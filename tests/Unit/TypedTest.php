@@ -8,7 +8,7 @@ use WPLake\Typed\Typed;
 
 class TypedTest extends TestCase
 {
-    // Note: All the class methods use the 'any()' method, so we can focus solely on it.
+    // Note: All the methods are decorators for the 'any()' method, so we can focus solely on it.
 
     // border cases
 
@@ -33,7 +33,7 @@ class TypedTest extends TestCase
         $this->assertSame('default', $result);
     }
 
-    public function testAnyWorksWithMixedKeys(): void
+    public function testAnyWorksWithMixedKeysPassedAsString(): void
     {
         $result = Typed::any([
             0 => [
@@ -42,6 +42,19 @@ class TypedTest extends TestCase
                 ]
             ],
         ], '0.key.0');
+
+        $this->assertSame('value', $result);
+    }
+
+    public function testAnyWorksWithMixedKeysPassedAsArray(): void
+    {
+        $result = Typed::any([
+            0 => [
+                'key' => [
+                    '0' => 'value'
+                ]
+            ],
+        ], [0,'key','0',]);
 
         $this->assertSame('value', $result);
     }
@@ -64,7 +77,7 @@ class TypedTest extends TestCase
         $this->assertSame('default', $result);
     }
 
-    public function testAnyMethodWorksWithArrayAndInnerKeys(): void
+    public function testAnyMethodWorksWithArrayAndInnerKeysWhenPassedAsString(): void
     {
         $data = ['level1' => ['level2' => ['key' => 'value']]];
 
@@ -73,11 +86,29 @@ class TypedTest extends TestCase
         $this->assertSame('value', $result);
     }
 
-    public function testAnyMethodReturnsDefaultForMissingInnerKeyInArray(): void
+    public function testAnyMethodWorksWithArrayAndInnerKeysWhenPassedAsArray(): void
+    {
+        $data = ['level1' => ['level2' => ['key' => 'value']]];
+
+        $result = Typed::any($data, ['level1','level2','key'], 'default');
+
+        $this->assertSame('value', $result);
+    }
+
+    public function testAnyMethodReturnsDefaultForMissingInnerKeyInArrayWhenPassesAsString(): void
     {
         $data = ['level1' => ['level2' => []]];
 
         $result = Typed::any($data, 'level1.level2.missing', 'default');
+
+        $this->assertSame('default', $result);
+    }
+
+    public function testAnyMethodReturnsDefaultForMissingInnerKeyInArrayWhenPassesAsArray(): void
+    {
+        $data = ['level1' => ['level2' => []]];
+
+        $result = Typed::any($data, ['level1','level2','missing'], 'default');
 
         $this->assertSame('default', $result);
     }
@@ -106,7 +137,7 @@ class TypedTest extends TestCase
         $this->assertSame('default', $result);
     }
 
-    public function testAnyMethodWorksWithObjectWithTypedInnerProperties(): void
+    public function testAnyMethodWorksWithObjectWithTypedInnerPropertiesWhenPassedAsString(): void
     {
         $object = new class {
             public object $level1;
@@ -131,7 +162,32 @@ class TypedTest extends TestCase
         $this->assertSame('value', $result);
     }
 
-    public function testAnyMethodReturnsDefaultForMissingTypedInnerPropertiesInObject(): void
+    public function testAnyMethodWorksWithObjectWithTypedInnerPropertiesWhenPassedAsArray(): void
+    {
+        $object = new class {
+            public object $level1;
+
+            public function __construct()
+            {
+                $this->level1 = new class {
+                    public object $level2;
+
+                    public function __construct()
+                    {
+                        $this->level2 = new class {
+                            public string $key = 'value';
+                        };
+                    }
+                };
+            }
+        };
+
+        $result = Typed::any($object, ['level1','level2','key'], 'default');
+
+        $this->assertSame('value', $result);
+    }
+
+    public function testAnyMethodReturnsDefaultForMissingTypedInnerPropertiesInObjectWhenPassedAsString(): void
     {
         $object = new class {
             public object $level1;
@@ -152,6 +208,31 @@ class TypedTest extends TestCase
         };
 
         $result = Typed::any($object, 'level1.level2.key', 'default');
+
+        $this->assertSame('default', $result);
+    }
+
+    public function testAnyMethodReturnsDefaultForMissingTypedInnerPropertiesInObjectWhenPassedAsArray(): void
+    {
+        $object = new class {
+            public object $level1;
+
+            public function __construct()
+            {
+                $this->level1 = new class {
+                    public object $level2;
+
+                    public function __construct()
+                    {
+                        $this->level2 = new class {
+                            public ?string $key = null;
+                        };
+                    }
+                };
+            }
+        };
+
+        $result = Typed::any($object, ['level1','level2','key'], 'default');
 
         $this->assertSame('default', $result);
     }
@@ -177,7 +258,7 @@ class TypedTest extends TestCase
         $this->assertSame('default', $result);
     }
 
-    public function testAnyMethodWorksWithObjectWithDynamicInnerProperties(): void
+    public function testAnyMethodWorksWithObjectWithDynamicInnerPropertiesWhenPassedAsString(): void
     {
         $object = new stdClass();
         $object->level1 = new stdClass();
@@ -189,7 +270,19 @@ class TypedTest extends TestCase
         $this->assertSame('value', $result);
     }
 
-    public function testAnyMethodReturnsDefaultForMissingDynamicInnerPropertiesInObject(): void
+    public function testAnyMethodWorksWithObjectWithDynamicInnerPropertiesWhenPassedAsArray(): void
+    {
+        $object = new stdClass();
+        $object->level1 = new stdClass();
+        $object->level1->level2 = new stdClass();
+        $object->level1->level2->key = 'value';
+
+        $result = Typed::any($object, ['level1','level2','key'], 'default');
+
+        $this->assertSame('value', $result);
+    }
+
+    public function testAnyMethodReturnsDefaultForMissingDynamicInnerPropertiesInObjectWhenPassedAsString(): void
     {
         $object = new stdClass();
         $object->level1 = new stdClass();
@@ -200,9 +293,20 @@ class TypedTest extends TestCase
         $this->assertSame('default', $result);
     }
 
+    public function testAnyMethodReturnsDefaultForMissingDynamicInnerPropertiesInObjectWhenPassedAsArray(): void
+    {
+        $object = new stdClass();
+        $object->level1 = new stdClass();
+        $object->level1->level2 = new stdClass();
+
+        $result = Typed::any($object, ['level1','level2','missing'], 'default');
+
+        $this->assertSame('default', $result);
+    }
+
     // mixed cases
 
-    public function testAnyMethodWorksWithMixedStructures(): void
+    public function testAnyMethodWorksWithMixedStructuresWhenPassedAsString(): void
     {
         $object = new stdClass();
         $object->property = new stdClass();
@@ -218,7 +322,23 @@ class TypedTest extends TestCase
         $this->assertSame('value', $result);
     }
 
-    public function testAnyMethodReturnsDefaultForMissingKeyInMixedStructures(): void
+    public function testAnyMethodWorksWithMixedStructuresWhenPassedAsArray(): void
+    {
+        $object = new stdClass();
+        $object->property = new stdClass();
+        $object->property->values = [
+            'arrayKey' => [
+                'innerObject' => new stdClass()
+            ]
+        ];
+        $object->property->values['arrayKey']['innerObject']->property = 'value';
+
+        $result = Typed::any($object, ['property','values','arrayKey','innerObject','property'], 'default');
+
+        $this->assertSame('value', $result);
+    }
+
+    public function testAnyMethodReturnsDefaultForMissingKeyInMixedStructuresWhenPassedAsString(): void
     {
         $object = new stdClass();
         $object->property = new stdClass();
@@ -231,5 +351,38 @@ class TypedTest extends TestCase
         $result = Typed::any($object, 'property.values.arrayKey.innerObject.missing', 'default');
 
         $this->assertSame('default', $result);
+    }
+
+    public function testAnyMethodReturnsDefaultForMissingKeyInMixedStructuresWhenPassedAsArray(): void
+    {
+        $object = new stdClass();
+        $object->property = new stdClass();
+        $object->property->values = [
+            'arrayKey' => [
+                'innerObject' => new stdClass()
+            ]
+        ];
+
+        $result = Typed::any($object, ['property','values','arrayKey','innerObject','missing'], 'default');
+
+        $this->assertSame('default', $result);
+    }
+
+    // functions.php
+
+    public function testFunctionsFileSkipsDeclarationsByDefault()
+    {
+        include __DIR__ . '/../../src/functions.php';
+
+        $this->assertFalse(function_exists('string'));
+    }
+
+    public function testFunctionsFileDeclaretsFunctionsWithConstant()
+    {
+        define('WPLAKE_TYPED_FUNCTIONS', true);
+
+        include __DIR__ . '/../../src/functions.php';
+
+        $this->assertTrue(function_exists('string'));
     }
 }
