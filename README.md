@@ -53,10 +53,10 @@ function getTypedStringFromMixedVariable($mixedData): string
 The code like `string($array, 'key')` resembles `(string)$array['key']` while being
 safe and smart — it even handles nested keys.
 
-> In case now you're thinking: "Hold on guys, but this code won't work! Are your using type names as function names?" 
-> 
+> In case now you're thinking: "Hold on guys, but this code won't work! Are your using type names as function names?"
+>
 > Our answer is: "Yes! And actually it isn't prohibited."
-> 
+>
 > See the explanation in the special section - [5. Note about the function names](#5-note-about-the-function-names)
 
 Backing to the package. Want to provide a default value when the key is missing? Here you go:
@@ -179,11 +179,21 @@ Think it’s prohibited? Not quite! While certain names are restricted for class
 are not:
 
 > “These names cannot be used to name a **class, interface, or
-> trait**” - [PHP Manual: Reserved Other Reserved Words](https://www.php.net/manual/en/reserved.other-reserved-words.php)
+> trait
+**” - [PHP Manual: Reserved Other Reserved Words](https://www.php.net/manual/en/reserved.other-reserved-words.php)
 
 This means you we can have things like `string($array, 'key')`, which resembles `(string)$array['key']` while being
 safer
 and smarter — it even handles nested keys.
+
+By the way, importing these functions does not interfere with native type casting in PHP. So, while practically
+unnecessary, the following construction will still work:
+
+```php
+use function WPLake\Typed\string;
+
+echo (string)string('hello');
+```
 
 Note: Unlike all the other types, the `array` keyword falls under
 a [different category](https://www.php.net/manual/en/reserved.keywords.php), which also prohibits its usage for function
