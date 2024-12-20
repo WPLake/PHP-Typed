@@ -74,7 +74,8 @@ Static methods for the following types are present:
 * `bool`
 * `array`
 * `object`
-* `DateTime`
+* `dateTime`
+* `any` (allows to use short dot-keys usage for unknowns)
 
 For optional cases, each type has an `OrNull` method option (e.g. `stringOrNull`), which returns `null` if the key
 doesn’t exist.

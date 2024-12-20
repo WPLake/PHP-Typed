@@ -3,8 +3,8 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use WPLake\Typed\Typed;
 use stdClass;
+use WPLake\Typed\Typed;
 
 class TypedTest extends TestCase
 {
