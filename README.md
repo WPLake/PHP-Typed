@@ -54,7 +54,7 @@ Want to provide a default value when the key is missing? Here you go:
 Typed::string($data, 'some.key', 'Default Value');
 ```
 
-## 2. Installation
+## 2. Installation and usage
 
 Typed class is distributed as a Composer package, making installation straightforward:
 
@@ -63,6 +63,14 @@ Typed class is distributed as a Composer package, making installation straightfo
 After installation, ensure that your application includes the Composer autoloader (if it hasn’t been included already):
 
 `require __DIR__ . '/vendor/autoload.php';`
+
+Usage:
+
+```php
+use WPLake\Typed\Typed;
+
+$string = Typed::string($array, 'first.second','default value');
+```
 
 ## 3. Supported types
 
@@ -77,7 +85,12 @@ Static methods for the following types are present:
 * `dateTime`
 * `any` (allows to use short dot-keys usage for unknowns)
 
-For optional cases, each type has an `OrNull` method option (e.g. `stringOrNull`), which returns `null` if the key
+Additionally:
+
+* `boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
+* `stringExtended` (supports objects with `__toString`)
+
+> Plus, for optional cases, each item has an `OrNull` method option (e.g. `stringOrNull`, `intOrNull`, and so on), which returns `null` if the key
 doesn’t exist.
 
 ## 4. How It Works
@@ -121,6 +134,12 @@ $userName = Typed::string($companyObject, 'user.name');
 
 ```php
 $userName = Typed::string($companyObject,'users.john.name');
+```
+
+In all the cases, you can pass a default value as the third argument, e.g.:
+
+```php
+$userName = Typed::string($companyObject,'users.john.name', 'Guest');
 ```
 
 ## 5. FAQ
