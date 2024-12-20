@@ -39,17 +39,15 @@ function getTypedStringFromMixedVariable($mixed): string
 use WPLake\Typed\Typed;
 use WPLake\Typed\Typed;
 
-function getTypedStringFromMixedVariable($mixedData): string
-{
-    return Typed::string($mixedData);
-}
-
-// Array item type casting:
 function getTypedIntFromArray(array $data): int
 {
     return Typed::int($data, 'meta.number');
 }
 
+function getTypedStringFromMixedVariable($mixedData): string
+{
+    return Typed::string($mixedData);
+}
 ```
 
 Want to provide a default value when the key is missing? Here you go:
