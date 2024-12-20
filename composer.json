@@ -1,0 +1,43 @@
+{
+  "name": "wplake/typed",
+  "description": "Lightweight PHP utility for seamless type-casting and data retrieval from dynamic variables, arrays, and objects.",
+  "homepage": "https://github.com/WPLake/typed",
+  "keywords": [
+    "type",
+    "cast"
+  ],
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "WPLake",
+      "homepage": "https://github.com/WPLake/"
+    }
+  ],
+  "require": {
+    "php": "^7.4|^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPLake\\Typed\\": "./src"
+    }
+  },
+  "require-dev": {
+    "pestphp/pest": "^3.7",
+    "phpstan/phpstan": "^2.0",
+    "phpstan/phpstan-strict-rules": "^2.0",
+    "squizlabs/php_codesniffer": "^3.11",
+    "slevomat/coding-standard": "^8.15"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "pest": "./vendor/bin/pest",
+    "phpstan": "php ./vendor/bin/phpstan analys -c ./phpstan.neon",
+    "phpcs": "php ./vendor/bin/phpcs --standard=phpcs.xml ./src",
+    "phpcbf": "php ./vendor/bin/phpcbf --standard=phpcs.xml ./src"
+  }
+}

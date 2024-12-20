@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<ruleset name="Typed">
+    <description>Ruleset for the Typed package</description>
+
+    <rule ref="PSR12"/>
+
+    <rule ref="SlevomatCodingStandard.Classes.ClassStructure">
+        <properties>
+            <property name="groups" type="array">
+                <element value="uses"/>
+                <element value="enum cases"/>
+
+                <element value="public constants"/>
+                <element value="protected constants"/>
+                <element value="private constants"/>
+
+                <element value="public static properties"/>
+                <element value="protected static properties"/>
+                <element value="private static properties"/>
+
+                <element value="public properties"/>
+                <element value="protected properties"/>
+                <element value="private properties"/>
+
+                <element value="public static abstract methods"/>
+                <element value="public static final methods"/>
+                <element value="public static methods"/>
+
+                <element value="protected static abstract methods"/>
+                <element value="protected static final methods"/>
+                <element value="protected static methods"/>
+
+                <element value="private static methods"/>
+
+                <element value="static constructors"/>
+                <element value="constructor"/>
+                <element value="destructor"/>
+
+                <element value="public abstract methods"/>
+                <element value="public final methods"/>
+                <element value="public methods"/>
+
+                <element value="protected abstract methods"/>
+                <element value="protected final methods"/>
+                <element value="protected methods"/>
+
+                <element value="private methods"/>
+                <element value="magic methods"/>
+            </property>
+
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Arrays.AlphabeticallySortedByKeys"/>
+    <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses"/>
+    <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">
+        <properties>
+            <property name="searchAnnotations" type="boolean" value="true"/>
+        </properties>
+    </rule>
+
+    <arg name="extensions" value="php"/>
+</ruleset>
