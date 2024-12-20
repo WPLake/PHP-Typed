@@ -102,9 +102,9 @@ Functions for the following types are present:
 * `int`
 * `float`
 * `bool`
-* `array`
 * `object`
 * `dateTime`
+* `arr` (stands for `array`, because it's a keyword)
 * `any` (allows to use short dot-keys usage for unknowns)
 
 Additionally:
@@ -238,7 +238,7 @@ $number = true === is_numeric($number)?
 10;
 
 // Typed:
-$number = Typed::int($data, 'meta.number', 10);
+$number = int($data, 'meta.number', 10);
 ```
 
 Additionally, with Null Coalescing Operator and a custom default value, you have to repeat yourself.
