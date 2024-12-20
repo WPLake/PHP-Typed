@@ -136,6 +136,12 @@ $userName = Typed::string($companyObject, 'user.name');
 $userName = Typed::string($companyObject,'users.john.name');
 ```
 
+In all the cases, you can pass a default value as the third argument, e.g.:
+
+```php
+$userName = Typed::string($companyObject,'users.john.name', 'Guest');
+```
+
 ## 5. FAQ
 
 ### 5.1) Why not just Null Coalescing Operator?
