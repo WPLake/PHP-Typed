@@ -116,7 +116,7 @@ function string($source, $keys = null, string $default = ''): string;
 
 Usage Scenarios:
 
-1. Extract a string from a mixed variable
+**1. Extract a string from a mixed variable**
 
 By default, returning an empty string if the variable can't be converted to a string:
 
@@ -126,7 +126,7 @@ $userName = string($unknownVar);
 $userName = string($unknownVar, null, 'custom fallback value');
 ```
 
-2. Retrieve a string from an array
+**2. Retrieve a string from an array**
 
 Including nested structures (with dot notation or as an array):
 
@@ -138,7 +138,7 @@ $userName = string($array, ['user','name',]);
 $userName = string($array, 'user.name', 'Guest');
 ```
 
-3. Access a string from an object
+**3. Access a string from an object**
 
 Including nested properties:
 
@@ -150,7 +150,7 @@ $userName = string($companyObject, ['user', 'name',]);
 $userName = string($companyObject, 'user.name', 'Guest');
 ```
 
-4. Work with mixed structures
+**4. Work with mixed structures**
 
 (e.g., `object->arrayProperty['key']->anotherProperty` or `['key' => $object]`)
 
@@ -188,8 +188,8 @@ Additionally:
 * `boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
 * `stringExtended` (supports objects with `__toString`)
 
-For optional cases, each item has an `OrNull` method option (e.g. `stringOrNull`, `intOrNull`, and so on),
-which returns `null` if the key doesn’t exist.
+For optional cases, when you need to apply the logic only when the item is present, each function has an `OrNull`
+variation (e.g. `stringOrNull`, `intOrNull`, and so on), which returns `null` if the key doesn’t exist.
 
 ## 5. Note about the function names
 
