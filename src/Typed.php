@@ -29,8 +29,11 @@ final class Typed
             return $source;
         }
 
-        if (false === is_array($keys)) {
-            $keys = explode('.', (string)$keys);
+        if (
+            is_string($keys) ||
+            is_numeric($keys)
+        ) {
+            $keys = explode('.', (string) $keys);
         }
 
         return self::resolveKeys($source, $keys, $default);
@@ -44,9 +47,9 @@ final class Typed
     {
         $value = self::any($source, $keys, $default);
 
-        return true === is_string($value) ||
-        true === is_numeric($value) ?
-            (string)$value :
+        return is_string($value) ||
+        is_numeric($value) ?
+            (string) $value :
             $default;
     }
 
@@ -59,17 +62,17 @@ final class Typed
         $value = self::any($source, $keys, $default);
 
         if (
-            true === is_string($value) ||
-            true === is_numeric($value)
+             is_string($value) ||
+             is_numeric($value)
         ) {
-            return (string)$value;
+            return (string) $value;
         }
 
         if (
-            true === is_object($value) &&
-            true === method_exists($value, '__toString')
+             is_object($value) &&
+             method_exists($value, '__toString')
         ) {
-            return (string)$value;
+            return (string) $value;
         }
 
         return $default;
@@ -83,9 +86,9 @@ final class Typed
     {
         $value = self::any($source, $keys);
 
-        return true === is_string($value) ||
-        true === is_numeric($value) ?
-            (string)$value :
+        return  is_string($value) ||
+         is_numeric($value) ?
+            (string) $value :
             null;
     }
 
@@ -98,17 +101,17 @@ final class Typed
         $value = self::any($source, $keys);
 
         if (
-            true === is_string($value) ||
-            true === is_numeric($value)
+            is_string($value) ||
+             is_numeric($value)
         ) {
-            return (string)$value;
+            return (string) $value;
         }
 
         if (
-            true === is_object($value) &&
-            true === method_exists($value, '__toString')
+             is_object($value) &&
+             method_exists($value, '__toString')
         ) {
-            return (string)$value;
+            return (string) $value;
         }
 
         return null;
@@ -122,8 +125,8 @@ final class Typed
     {
         $value = self::any($source, $keys, $default);
 
-        return true === is_numeric($value) ?
-            (int)$value :
+        return  is_numeric($value) ?
+            (int) $value :
             $default;
     }
 
@@ -135,8 +138,8 @@ final class Typed
     {
         $value = self::any($source, $keys);
 
-        return true === is_numeric($value) ?
-            (int)$value :
+        return  is_numeric($value) ?
+            (int) $value :
             null;
     }
 
@@ -148,8 +151,8 @@ final class Typed
     {
         $value = self::any($source, $keys, $default);
 
-        return true === is_numeric($value) ?
-            (float)$value :
+        return is_numeric($value) ?
+            (float) $value :
             $default;
     }
 
@@ -161,8 +164,8 @@ final class Typed
     {
         $value = self::any($source, $keys);
 
-        return true === is_numeric($value) ?
-            (float)$value :
+        return  is_numeric($value) ?
+            (float) $value :
             null;
     }
 
@@ -174,7 +177,7 @@ final class Typed
     {
         $value = self::any($source, $keys, $default);
 
-        return true === is_bool($value) ?
+        return  is_bool($value) ?
             $value :
             $default;
     }
@@ -187,7 +190,7 @@ final class Typed
     {
         $value = self::any($source, $keys);
 
-        return true === is_bool($value) ?
+        return  is_bool($value) ?
             $value :
             null;
     }
@@ -207,11 +210,11 @@ final class Typed
     ): bool {
         $value = self::any($source, $keys, $default);
 
-        if (true === in_array($value, $positive, true)) {
+        if (in_array($value, $positive, true)) {
             return true;
         }
 
-        if (true === in_array($value, $negative, true)) {
+        if (in_array($value, $negative, true)) {
             return false;
         }
 
@@ -232,11 +235,11 @@ final class Typed
     ): ?bool {
         $value = self::any($source, $keys);
 
-        if (true === in_array($value, $positive, true)) {
+        if (in_array($value, $positive, true)) {
             return true;
         }
 
-        if (true === in_array($value, $negative, true)) {
+        if (in_array($value, $negative, true)) {
             return false;
         }
 
@@ -254,7 +257,7 @@ final class Typed
     {
         $value = self::any($source, $keys, $default);
 
-        return true === is_array($value) ?
+        return  is_array($value) ?
             $value :
             $default;
     }
@@ -269,7 +272,7 @@ final class Typed
     {
         $value = self::any($source, $keys);
 
-        return true === is_array($value) ?
+        return is_array($value) ?
             $value :
             null;
     }
@@ -286,7 +289,7 @@ final class Typed
 
         $value = self::any($source, $keys, $default);
 
-        return true === is_object($value) ?
+        return  is_object($value) ?
             $value :
             $default;
     }
@@ -299,7 +302,7 @@ final class Typed
     {
         $value = self::any($source, $keys);
 
-        return true === is_object($value) ?
+        return is_object($value) ?
             $value :
             null;
     }
@@ -316,7 +319,7 @@ final class Typed
 
         $value = self::object($source, $keys, $default);
 
-        return true === ($value instanceof DateTime) ?
+        return $value instanceof DateTime ?
             $value :
             $default;
     }
@@ -329,7 +332,7 @@ final class Typed
     {
         $value = self::any($source, $keys);
 
-        return true === ($value instanceof DateTime) ?
+        return $value instanceof DateTime ?
             $value :
             null;
     }
@@ -342,18 +345,22 @@ final class Typed
     protected static function resolveKey($source, $key, &$value): bool
     {
         if (
-            true === is_object($source) &&
-            true === isset($source->{$key})
+             is_object($source) &&
+             // @phpstan-ignore-next-line
+             isset($source->{$key})
         ) {
+            // @phpstan-ignore-next-line
             $value = $source->{$key};
+
             return true;
         }
 
         if (
-            true === is_array($source) &&
-            true === isset($source[$key])
+             is_array($source) &&
+             key_exists($key, $source)
         ) {
             $value = $source[$key];
+
             return true;
         }
 
@@ -372,7 +379,7 @@ final class Typed
         foreach ($keys as $key) {
             $value = null;
 
-            if (true === self::resolveKey($source, $key, $value)) {
+            if (self::resolveKey($source, $key, $value)) {
                 $source = $value;
                 continue;
             }

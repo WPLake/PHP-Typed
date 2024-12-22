@@ -18,17 +18,17 @@ allowing you to fetch and cast values with concise, readable code.
 ```php
 function getUserAge(array $userData): int
 {
-    return true === isset($userData['meta']['age']) &&
-           true === is_numeric($userData['meta']['age'])
-           ? (int)$userData['meta']['age']
+    return isset($userData['meta']['age']) &&
+           is_numeric($userData['meta']['age'])
+           ? (int) $userData['meta']['age']
            : 0;
 }
 
 function upgradeUserById($mixedUserId): void
 {
-    $userId = true === is_string($mixedUserId) || 
-    true === is_numeric($mixedUserId)
-        ? (string)$mixedUserId
+    $userId = is_string($mixedUserId) || 
+    is_numeric($mixedUserId)
+        ? (string) $mixedUserId
         : '';
 }
 ```
@@ -253,8 +253,8 @@ While the Null Coalescing Operator (`??`) is useful, it doesn’t address type c
 ```php
 // Plain PHP:
 $number = $data['meta']['number']?? 10;
-$number = true === is_numeric($number)?
-(int)$number:
+$number = is_numeric($number)?
+(int) $number:
 10;
 
 // Typed:
