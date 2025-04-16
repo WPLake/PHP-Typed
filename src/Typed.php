@@ -6,6 +6,7 @@ namespace WPLake\Typed;
 
 use DateTime;
 use stdClass;
+use Throwable;
 
 /**
  * This class is marked as final to prevent extension.
@@ -25,18 +26,7 @@ final class Typed
      */
     public static function any($source, $keys = null, $default = null)
     {
-        if (null === $keys) {
-            return $source;
-        }
-
-        if (
-            is_string($keys) ||
-            is_numeric($keys)
-        ) {
-            $keys = explode('.', (string) $keys);
-        }
-
-        return self::resolveKeys($source, $keys, $default);
+        return self::anyAsReference($source, $keys, $default);
     }
 
     /**
@@ -338,28 +328,40 @@ final class Typed
     }
 
     /**
-     * @param mixed $source
-     * @param int|string $key
+     * @param mixed $target
+     * @param int|string|array<int,int|string> $keys
      * @param mixed $value
      */
-    protected static function resolveKey($source, $key, &$value): bool
+    public static function setItem(&$target, $keys, $value): bool
     {
-        if (
-             is_object($source) &&
-             // @phpstan-ignore-next-line
-             isset($source->{$key})
-        ) {
-            // @phpstan-ignore-next-line
-            $value = $source->{$key};
+        $keys = is_numeric($keys) ||
+            is_string($keys) ?
+            explode('.', (string) $keys) :
+            $keys;
+
+        $itemKey = array_pop($keys);
+
+        // at least one key must be defined.
+        if (null === $itemKey) {
+            return false;
+        }
+
+        $parentItemReference = &self::anyAsReference($target, $keys);
+
+        if (is_array($parentItemReference)) {
+            $parentItemReference[$itemKey] = $value;
 
             return true;
         }
 
-        if (
-             is_array($source) &&
-             key_exists($key, $source)
-        ) {
-            $value = $source[$key];
+        if (is_object($parentItemReference)) {
+            try {
+                // @phpstan-ignore-next-line
+                $parentItemReference->{$itemKey} = $value;
+            } catch (Throwable $e) {
+                return false;
+            }
+
 
             return true;
         }
@@ -369,24 +371,85 @@ final class Typed
 
     /**
      * @param mixed $source
+     * @param int|string|array<int,int|string>|null $keys
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    protected static function &anyAsReference(&$source, $keys = null, $default = null)
+    {
+        if (null === $keys) {
+            return $source;
+        }
+
+        if (
+            is_string($keys) ||
+            is_numeric($keys)
+        ) {
+            $keys = explode('.', (string) $keys);
+        }
+
+        return self::resolveKeys($source, $keys, $default);
+    }
+
+    /**
+     * @param mixed $source
+     * @param int|string $key
+     *
+     * @return mixed
+     */
+    protected static function &resolveKey(&$source, $key, bool &$isResolved = false)
+    {
+        $value = null;
+
+        if (
+            is_object($source) &&
+            // @phpstan-ignore-next-line
+            isset($source->{$key})
+        ) {
+            $isResolved = true;
+
+            // @phpstan-ignore-next-line
+            $value = &$source->{$key};
+        }
+
+        if (
+            is_array($source) &&
+            key_exists($key, $source)
+        ) {
+            $isResolved = true;
+
+            // @phpstan-ignore-next-line
+            $value = &$source[$key];
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param mixed $source
      * @param array<int,int|string> $keys
      * @param mixed $default
      *
      * @return mixed
      */
-    protected static function resolveKeys($source, array $keys, $default)
+    protected static function &resolveKeys(&$source, array $keys, $default)
     {
-        foreach ($keys as $key) {
-            $value = null;
+        $origin = &$source;
 
-            if (self::resolveKey($source, $key, $value)) {
-                $source = $value;
+        foreach ($keys as $key) {
+            $isResolved = false;
+
+            $value = &self::resolveKey($origin, $key, $isResolved);
+
+            if ($isResolved) {
+                $origin = &$value;
                 continue;
             }
 
             return $default;
         }
 
-        return $source;
+        return $origin;
     }
 }
