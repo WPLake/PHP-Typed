@@ -418,7 +418,6 @@ final class Typed
         ) {
             $isResolved = true;
 
-            // @phpstan-ignore-next-line
             $value = &$source[$key];
         }
 
