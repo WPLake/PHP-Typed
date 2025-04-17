@@ -1,7 +1,7 @@
 # PHP Typed
 
-> `Typed` is a lightweight PHP utility for seamless type-casting and data retrieval from dynamic variables, arrays, and
-> objects.
+> `Typed` is a lightweight PHP utility for seamless type-casting and item manipulations, perfect for dynamic variables,
+> arrays, and objects.
 
 This package provides a single `Typed` class with static methods and offers compatibility with PHP versions `7.4+` and
 `8.0+`.
@@ -16,20 +16,33 @@ allowing you to fetch and cast values with concise, readable code.
 **Example: Plain PHP**
 
 ```php
-function getTypedIntFromArray(array $array): int
+function getUserAge(array $userData): int
 {
-    return true === isset($array['meta']['number']) &&
-             true === is_numeric($array['meta']['number'])
-             ? (int)$array['meta']['number']
-             : 0;
+    return isset($userData['meta']['age']) &&
+           is_numeric($userData['meta']['age'])
+           ? (int) $userData['meta']['age']
+           : 0;
 }
 
-function getTypedStringFromMixedVariable($mixed): string
+function upgradeUserById($mixedUserId): void
 {
-    return true === is_string($mixed) || 
-    true === is_numeric($mixed)
-        ? (string)$mixed
+    $userId = is_string($mixedUserId) || 
+    is_numeric($mixedUserId)
+        ? (string) $mixedUserId
         : '';
+}
+
+function setUserEducation(array $user, string $education): array
+{
+  // such long chain is the only safe way passing PHPStan checks.
+  if(key_exists('data', $userData) && 
+  is_array($userData['data']) &&
+  key_exists('bio', $userData['data']) && 
+  is_array($userData['data']['bio'])) {
+    $userData['data']['bio']['education'] = $education;
+  }
+  
+  return $userData;
 }
 ```
 
@@ -39,24 +52,32 @@ function getTypedStringFromMixedVariable($mixed): string
 use function WPLake\Typed\int;
 use function WPLake\Typed\string;
 
-function getTypedIntFromArray(array $data): int
+function getUserAge(array $userData): int
 {
-    return int($data, 'meta.number');
+    return int($userData, 'meta.age');
 }
 
-function getTypedStringFromMixedVariable($mixedData): string
+function upgradeUserById($mixedUserId): void
 {
-    return string($mixedData);
+    $userId = string($mixedUserId);
+}
+
+function setUserEducation(array $userData, string $education): array
+{
+  // will set only if 'data' and 'bio' keys are present.
+  $isSet = setItem($userData, 'data.bio.education', $education);
+  
+  return $userData;
 }
 ```
 
 The code like `string($array, 'key')` resembles `(string)$array['key']` while being
-safe and smart — it even handles nested keys.
+safe and smart — it even handles nested keys and default values.
 
-> In case now you're thinking: "Hold on guys, but this code won't work! Are your using type names as function names?" 
-> 
+> In case now you're thinking: "Hold on guys, but this code won't work! Are your using type names as function names?"
+>
 > Our answer is: "Yes! And actually it isn't prohibited."
-> 
+>
 > See the explanation in the special section - [5. Note about the function names](#5-note-about-the-function-names)
 
 Backing to the package. Want to provide a default value when the key is missing? Here you go:
@@ -65,7 +86,7 @@ Backing to the package. Want to provide a default value when the key is missing?
 string($data, 'some.key', 'Default Value');
 ```
 
-Don't like functions? The same functions set is available as static methods of the `Typed` class:
+Can't stand functions? The same functions set is available as static methods of the `Typed` class:
 
 ```php
 use WPLake\Typed\Typed;
@@ -83,39 +104,52 @@ After installation, ensure that your application includes the Composer autoloade
 
 `require __DIR__ . '/vendor/autoload.php';`
 
-Usage:
+### 2.1) Retrieval usage:
 
 ```php
 use function WPLake\Typed\string;
 use WPLake\Typed\Typed;
 
-$string = string($array, 'first.second','default value');
-// alternatively:
-$string = Typed::string($array, 'first.second','default value');
+$string = string($array, 'first.second');
+// alternatively, array of keys:
+$string = string($array, ['first', 'second',]);
+// alternatively, static method:
+$string = Typed::string($array, 'first.second');
+// custom fallback:
+$string = string($array, 'first.second', 'custom default');
 ```
 
-## 3. Supported types
+### 2.2) Setting item usage:
 
-Functions for the following types are present:
+```php
+use function WPLake\Typed\setItem;
+use WPLake\Typed\Typed;
 
-* `string`
-* `int`
-* `float`
-* `bool`
-* `array`
-* `object`
-* `dateTime`
-* `any` (allows to use short dot-keys usage for unknowns)
+function myFunction(array $unknownKeys): void {
+    // will set only if 'first' and 'second' keys exist.
+    $isSet = setItem($unknownKeys, 'first.second.third', 'value');
+    // alternatively, array of keys
+    $isSet = Typed::setItem($unknownKeys, ['first', 'second', 'third',], 'value');
+    // alternatively, static method
+    $isSet = Typed::setItem($unknownKeys, 'first.second.third', 'value');
+    
+    return $array;
+}
 
-Additionally:
+$array = [
+ 'first' => [
+      // ...
+    'second' => [
+        
+    ],
+ ],
+];
 
-* `boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
-* `stringExtended` (supports objects with `__toString`)
+myFunction($array);
 
-For optional cases, each item has an `OrNull` method option (e.g. `stringOrNull`, `intOrNull`, and so on),
-which returns `null` if the key doesn’t exist.
+```
 
-## 4. How It Works
+## 3. How Retrieval Functions Work
 
 The logic of all casting methods follows this simple principle:
 
@@ -135,41 +169,80 @@ function string($source, $keys = null, string $default = ''): string;
 
 Usage Scenarios:
 
-1. Extract a string from a mixed variable (returning the default if absent or of an incompatible type)
+**1. Extract a string from a mixed variable**
+
+By default, returning an empty string if the variable can't be converted to a string:
 
 ```php
 $userName = string($unknownVar);
+// you can customize the fallback:
+$userName = string($unknownVar, null, 'custom fallback value');
 ```
 
-2. Retrieve a string from an array, including nested structures (with dot notation or as an array).
+**2. Retrieve a string from an array**
+
+Including nested structures (with dot notation or as an array):
 
 ```php
 $userName = string($array, 'user.name');
 // alternatively:
 $userName = string($array, ['user','name',]);
+// custom fallback:
+$userName = string($array, 'user.name', 'Guest');
 ```
 
-3. Access a string from an object. It also supports the nested properties.
+**3. Access a string from an object**
+
+Including nested properties:
 
 ```php
 $userName = string($companyObject, 'user.name');
 // alternatively:
 $userName = string($companyObject, ['user', 'name',]);
+// custom fallback:
+$userName = string($companyObject, 'user.name', 'Guest');
 ```
 
-4. Work with mixed structures (e.g., `object->arrayProperty['key']->anotherProperty or ['key' => $object]`).
+**4. Work with mixed structures**
+
+(e.g., `object->arrayProperty['key']->anotherProperty` or `['key' => $object]`)
 
 ```php
 $userName = string($companyObject,'users.john.name');
 // alternatively:
 $userName = string($companyObject,['users','john','name',]);
+// custom fallback:
+$userName = string($companyObject, 'users.john.name', 'Guest');
 ```
 
-In all the cases, you can pass a default value as the third argument, e.g.:
+In all the cases, the fallback value is the 'empty' value for the specific type (e.g. `0`, `false`, `""`, and so on),
+but you
+can pass a custom default value as the third argument:
 
 ```php
 $userName = string($companyObject,'users.john.name', 'Guest');
 ```
+
+## 4. Supported types
+
+Functions for the following types are present:
+
+* `string`
+* `int`
+* `float`
+* `bool`
+* `object`
+* `dateTime`
+* `arr` (stands for `array`, because it's a keyword)
+* `any` (allows to use short dot-keys usage for unknowns)
+
+Additionally:
+
+* `boolExtended` (`true`,`1`,`"1"`, `"on"` are treated as true, `false`,`0`,`"0"`, `"off"` as false)
+* `stringExtended` (supports objects with `__toString`)
+
+For optional cases, when you need to apply the logic only when the item is present, each function has an `OrNull`
+variation (e.g. `stringOrNull`, `intOrNull`, and so on), which returns `null` if the key doesn’t exist.
 
 ## 5. Note about the function names
 
@@ -179,11 +252,21 @@ Think it’s prohibited? Not quite! While certain names are restricted for class
 are not:
 
 > “These names cannot be used to name a **class, interface, or
-> trait**” - [PHP Manual: Reserved Other Reserved Words](https://www.php.net/manual/en/reserved.other-reserved-words.php)
+> trait
+**” - [PHP Manual: Reserved Other Reserved Words](https://www.php.net/manual/en/reserved.other-reserved-words.php)
 
 This means you we can have things like `string($array, 'key')`, which resembles `(string)$array['key']` while being
 safer
 and smarter — it even handles nested keys.
+
+By the way, importing these functions does not interfere with native type casting in PHP. So, while practically
+unnecessary, the following construction will still work:
+
+```php
+use function WPLake\Typed\string;
+
+echo (string)string('hello');
+```
 
 Note: Unlike all the other types, the `array` keyword falls under
 a [different category](https://www.php.net/manual/en/reserved.keywords.php), which also prohibits its usage for function
@@ -223,12 +306,12 @@ While the Null Coalescing Operator (`??`) is useful, it doesn’t address type c
 ```php
 // Plain PHP:
 $number = $data['meta']['number']?? 10;
-$number = true === is_numeric($number)?
-(int)$number:
+$number = is_numeric($number)?
+(int) $number:
 10;
 
 // Typed:
-$number = Typed::int($data, 'meta.number', 10);
+$number = int($data, 'meta.number', 10);
 ```
 
 Additionally, with Null Coalescing Operator and a custom default value, you have to repeat yourself.
@@ -242,11 +325,10 @@ This package simplifies handling such scenarios.
 Any seasoned PHP developer knows the pain of type-casting when working with environments outside of frameworks, e.g. in
 WordPress.
 
-### 6.4) Is the dot syntax in keys inspired by Laravel Collections?
+### 6.4) Is the dot syntax in keys inspired by Laravel Helpers?
 
-Yes, the dot syntax is inspired by [Laravel Collections](https://laravel.com/docs/11.x/collections) and similar
-solutions. It provides an intuitive way to access
-nested data structures.
+Yes, the dot syntax is inspired by [Laravel’s Arr::get](https://laravel.com/docs/11.x/helpers) and similar
+solutions. It provides an intuitive way to access nested data structures.
 
 ### 6.5) Why not just use Laravel Collections?
 
