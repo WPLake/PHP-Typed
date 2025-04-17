@@ -362,7 +362,6 @@ final class Typed
                 return false;
             }
 
-
             return true;
         }
 
