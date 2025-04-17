@@ -1,7 +1,7 @@
 # PHP Typed
 
-> `Typed` is a lightweight PHP utility for seamless type-casting and data retrieval from dynamic variables, arrays, and
-> objects.
+> `Typed` is a lightweight PHP utility for seamless type-casting and item manipulations, perfect for dynamic variables,
+> arrays, and objects.
 
 This package provides a single `Typed` class with static methods and offers compatibility with PHP versions `7.4+` and
 `8.0+`.
@@ -31,6 +31,19 @@ function upgradeUserById($mixedUserId): void
         ? (string) $mixedUserId
         : '';
 }
+
+function setUserEducation(array $user, string $education): array
+{
+  // such long chain is the only safe way passing PHPStan checks.
+  if(key_exists('data', $userData) && 
+  is_array($userData['data']) &&
+  key_exists('bio', $userData['data']) && 
+  is_array($userData['data']['bio'])) {
+    $userData['data']['bio']['education'] = $education;
+  }
+  
+  return $userData;
+}
 ```
 
 **The same with the `Typed` utility**
@@ -47,6 +60,14 @@ function getUserAge(array $userData): int
 function upgradeUserById($mixedUserId): void
 {
     $userId = string($mixedUserId);
+}
+
+function setUserEducation(array $userData, string $education): array
+{
+  // will set only if 'data' and 'bio' keys are present.
+  $isSet = setItem($userData, 'data.bio.education', $education);
+  
+  return $userData;
 }
 ```
 
@@ -83,20 +104,52 @@ After installation, ensure that your application includes the Composer autoloade
 
 `require __DIR__ . '/vendor/autoload.php';`
 
-Usage:
+### 2.1) Retrieval usage:
 
 ```php
 use function WPLake\Typed\string;
 use WPLake\Typed\Typed;
 
 $string = string($array, 'first.second');
-// alternatively:
+// alternatively, array of keys:
+$string = string($array, ['first', 'second',]);
+// alternatively, static method:
 $string = Typed::string($array, 'first.second');
 // custom fallback:
 $string = string($array, 'first.second', 'custom default');
 ```
 
-## 3. How It Works
+### 2.2) Setting item usage:
+
+```php
+use function WPLake\Typed\setItem;
+use WPLake\Typed\Typed;
+
+function myFunction(array $unknownKeys): void {
+    // will set only if 'first' and 'second' keys exist.
+    $isSet = setItem($unknownKeys, 'first.second.third', 'value');
+    // alternatively, array of keys
+    $isSet = Typed::setItem($unknownKeys, ['first', 'second', 'third',], 'value');
+    // alternatively, static method
+    $isSet = Typed::setItem($unknownKeys, 'first.second.third', 'value');
+    
+    return $array;
+}
+
+$array = [
+ 'first' => [
+      // ...
+    'second' => [
+        
+    ],
+ ],
+];
+
+myFunction($array);
+
+```
+
+## 3. How Retrieval Functions Work
 
 The logic of all casting methods follows this simple principle:
 
