@@ -408,6 +408,8 @@ final class Typed
         ) {
             $isResolved = true;
 
+            // todo: if the property is accessed via __get(), then PHP will generate a Notice:
+            // "Indirect modification of overloaded property ... has no effect"
             // @phpstan-ignore-next-line
             $value = &$source->{$key};
         }
