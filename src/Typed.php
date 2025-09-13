@@ -26,7 +26,7 @@ final class Typed
      */
     public static function any($source, $keys = null, $default = null)
     {
-        return self::anyAsReference($source, $keys, $default);
+        return self::resolveAny($source, $keys, $default);
     }
 
     /**
@@ -346,7 +346,7 @@ final class Typed
             return false;
         }
 
-        $parentItemReference = &self::anyAsReference($target, $keys);
+        $parentItemReference = &self::resolveAnyAsReference($target, $keys);
 
         if (is_array($parentItemReference)) {
             $parentItemReference[$itemKey] = $value;
@@ -354,18 +354,40 @@ final class Typed
             return true;
         }
 
-        if (is_object($parentItemReference)) {
-            try {
-                // @phpstan-ignore-next-line
-                $parentItemReference->{$itemKey} = $value;
-            } catch (Throwable $e) {
-                return false;
-            }
+        $stringItemKey = (string) $itemKey;
 
-            return true;
+        if (is_object($parentItemReference)) {
+            return self::setObjectProperty($parentItemReference, $stringItemKey, $value);
+        }
+
+        // fallback: if the parent element wasn't resolved as a reference,
+        // e.g. somewhere in the key chain there is __get(),
+        // we try to resolve it as a plain value,
+        // and if the resolved plain value is an object, then we assign, since any object is a link itself
+        if (is_null($parentItemReference)) {
+            $parentItem =  self::resolveAny($target, $keys);
+
+            if (is_object($parentItem)) {
+                return self::setObjectProperty($parentItem, $stringItemKey, $value);
+            }
         }
 
         return false;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    protected static function setObjectProperty(object $object, string $property, $value): bool
+    {
+        try {
+            // @phpstan-ignore-next-line
+            $object->{$property} = $value;
+        } catch (Throwable $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -375,7 +397,30 @@ final class Typed
      *
      * @return mixed
      */
-    protected static function &anyAsReference(&$source, $keys = null, $default = null)
+    protected static function &resolveAnyAsReference(&$source, $keys = null, $default = null)
+    {
+        if (null === $keys) {
+            return $source;
+        }
+
+        if (
+            is_string($keys) ||
+            is_numeric($keys)
+        ) {
+            $keys = explode('.', (string) $keys);
+        }
+
+        return self::resolveKeysAsReference($source, $keys, $default);
+    }
+
+    /**
+     * @param mixed $source
+     * @param int|string|array<int,int|string>|null $keys
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    protected static function resolveAny($source, $keys = null, $default = null)
     {
         if (null === $keys) {
             return $source;
@@ -397,19 +442,21 @@ final class Typed
      *
      * @return mixed
      */
-    protected static function &resolveKey(&$source, $key, bool &$isResolved = false)
+    protected static function &resolveKeyAsReference(&$source, $key, bool &$isResolved = false)
     {
         $value = null;
+        $stringKey = (string) $key;
 
         if (
             is_object($source) &&
-            // @phpstan-ignore-next-line
-            isset($source->{$key})
+            // for taking a reference property must exist, case with __get() based won't work:
+            // "Indirect modification of overloaded property ... has no effect"
+            property_exists($source, $stringKey)
         ) {
             $isResolved = true;
 
             // @phpstan-ignore-next-line
-            $value = &$source->{$key};
+            $value = &$source->{$stringKey};
         }
 
         if (
@@ -426,22 +473,83 @@ final class Typed
 
     /**
      * @param mixed $source
+     * @param int|string $key
+     *
+     * @return mixed
+     */
+    protected static function resolveKey($source, $key, bool &$isResolved = false)
+    {
+        $value = null;
+
+        if (
+            is_object($source) &&
+            // using isset() we support __get() based properties
+            // @phpstan-ignore-next-line
+            isset($source->{$key})
+        ) {
+            $isResolved = true;
+
+            // @phpstan-ignore-next-line
+            $value = $source->{$key};
+        }
+
+        if (
+            is_array($source) &&
+            key_exists($key, $source)
+        ) {
+            $isResolved = true;
+
+            $value = $source[$key];
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param mixed $source
      * @param array<int,int|string> $keys
      * @param mixed $default
      *
      * @return mixed
      */
-    protected static function &resolveKeys(&$source, array $keys, $default)
+    protected static function &resolveKeysAsReference(&$source, array $keys, $default)
     {
         $origin = &$source;
 
         foreach ($keys as $key) {
             $isResolved = false;
 
-            $value = &self::resolveKey($origin, $key, $isResolved);
+            $value = &self::resolveKeyAsReference($origin, $key, $isResolved);
 
             if ($isResolved) {
                 $origin = &$value;
+                continue;
+            }
+
+            return $default;
+        }
+
+        return $origin;
+    }
+
+    /**
+     * @param mixed $source
+     * @param array<int,int|string> $keys
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    protected static function resolveKeys($source, array $keys, $default)
+    {
+        $origin = $source;
+
+        foreach ($keys as $key) {
+            $isResolved = false;
+
+            $value = self::resolveKey($origin, $key, $isResolved);
+
+            if ($isResolved) {
+                $origin = $value;
                 continue;
             }
 
