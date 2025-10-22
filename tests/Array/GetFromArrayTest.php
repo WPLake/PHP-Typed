@@ -2,8 +2,14 @@
 
 use WPLake\Typed\Typed;
 
-it('works with an array', function () {
+it('works with a string array key', function () {
     $result = Typed::any(['key' => 'value'], 'key', 'default');
+
+    expect($result)->toBe('value');
+});
+
+it('works with a numeric array key', function () {
+    $result = Typed::any([1 => 'value'], 1, 'default');
 
     expect($result)->toBe('value');
 });
