@@ -22,7 +22,7 @@ it('returns the default value for a missing key in an array', function () {
     expect($result)->toBe('default');
 });
 
-it('works with an array and inner keys when passed as a string', function () {
+it('works with inner keys when passed as a string', function () {
     $data = ['level1' => ['level2' => ['key' => 'value']]];
 
     $result = Typed::any($data, 'level1.level2.key', 'default');
@@ -30,7 +30,15 @@ it('works with an array and inner keys when passed as a string', function () {
     expect($result)->toBe('value');
 });
 
-it('works with an array and inner keys when passed as an array', function () {
+it('works with inner keys when passed as a mixed string-numeric path', function () {
+    $data = ['level1' => [ ['key' => 'value']]];
+
+    $result = Typed::any($data, 'level1.0.key', 'default');
+
+    expect($result)->toBe('value');
+});
+
+it('works with inner keys when passed as an array', function () {
     $data = ['level1' => ['level2' => ['key' => 'value']]];
 
     $result = Typed::any($data, ['level1', 'level2', 'key'], 'default');
