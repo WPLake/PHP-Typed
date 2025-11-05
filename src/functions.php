@@ -210,7 +210,9 @@ function dateTimeOrNull($source, $keys = null): ?DateTime
 }
 
 /**
- * @param mixed $target
+ * @template Target
+ *
+ * @param Target $target
  * @param int|string|array<int,int|string> $keys
  * @param mixed $value
  */

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WPLake\Typed;
 
 use DateTime;
+use PHP_CodeSniffer\Reports\Source;
 use stdClass;
 use Throwable;
 
@@ -328,7 +329,8 @@ final class Typed
     }
 
     /**
-     * @param mixed $target
+     * @template Target
+     * @param Target $target
      * @param int|string|array<int,int|string> $keys
      * @param mixed $value
      */
@@ -391,7 +393,9 @@ final class Typed
     }
 
     /**
-     * @param mixed $source
+     * @template Source
+     *
+     * @param Source $source
      * @param int|string|array<int,int|string>|null $keys
      * @param mixed $default
      *
@@ -506,7 +510,9 @@ final class Typed
     }
 
     /**
-     * @param mixed $source
+     * @template Source
+     *
+     * @param Source $source
      * @param array<int,int|string> $keys
      * @param mixed $default
      *
